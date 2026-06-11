@@ -1,59 +1,67 @@
-import 'dart:async'; //import timer 
-import 'package:flutter/material.dart'; //import material dari google
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_application_2/akun.dart';
 import 'package:flutter_application_2/top3.dart';
 import 'package:flutter_application_2/homepage.dart';
+import 'package:audioplayers/audioplayers.dart';
 
-class Playsong extends StatefulWidget { 
-  
+class Playsong extends StatefulWidget {
   const Playsong({super.key});
 
   @override
-  State<Playsong> createState() => _PlaysongState(); // untuk menyimpan data dan logika
+  State<Playsong> createState() => _PlaysongState();
 }
 
 class _PlaysongState extends State<Playsong> {
+  final AudioPlayer player = AudioPlayer();
   bool isFavorite = false;
-  bool isPlaying = false; // 
-  double sliderValue = 0.0; // awalnya bernilai 0.0 karena lagu dimulai dari detik 0
-  double songDuration = 176; //durasi akhir lagu agar timer tidak melewati durasi
-  Timer? timer; // timer yang buat waktu berjalan. kenapa pake ? karena timer baru berjalan saat tombol play di klik
+  bool isPlaying = false; //
+  double sliderValue = 0.0;
+  double songDuration = 176;
 
   // navbar index animation
   int selectedIndex = 2;
 
-  String formatTime(double seconds) { // untuk mengubah format waktu dari detik ke menit
+  String formatTime(double seconds) {
     int minutes = seconds ~/ 60;
     int secs = (seconds % 60).toInt();
     return '$minutes:${secs.toString().padLeft(2, '0')}';
   }
 
-  void playSimulation() { // menyinkronkan slider dengan timer
-    timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (sliderValue < songDuration) { //pake percabangan
-        setState(() {
-          sliderValue += 1;
-        });
-      } else {
-        stopSimulation();
-      }
-    });
-  }
-
-  void stopSimulation() { // untuk stop timer
-    timer?.cancel();
-    setState(() {
-      isPlaying = false; //isplaying kembali menjadi false setelah sebelumnya menjadi true
-    });
-  }
-
   @override
-  void dispose() { 
-    timer?.cancel(); 
+  void dispose() {
+    player.dispose();
     super.dispose();
   }
 
   @override
+  @override
+  void initState() {
+    super.initState();
+
+    // ambil durasi lagu
+    player.onDurationChanged.listen((duration) {
+      setState(() {
+        songDuration = duration.inSeconds.toDouble();
+      });
+    });
+
+    // ambil posisi lagu berjalan
+    player.onPositionChanged.listen((position) {
+      setState(() {
+        sliderValue = position.inSeconds.toDouble();
+      });
+    });
+
+    // kalau lagu selesai
+    player.onPlayerComplete.listen((event) {
+      setState(() {
+        isPlaying = false;
+        sliderValue = 0;
+      });
+    });
+  }
+
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -78,7 +86,8 @@ class _PlaysongState extends State<Playsong> {
           ),
           leading: IconButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => TopArtPage()));
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => TopArtPage()));
             },
             icon: const Icon(Icons.arrow_left, size: 50, color: Colors.black),
           ),
@@ -88,7 +97,6 @@ class _PlaysongState extends State<Playsong> {
           child: Column(
             children: [
               const SizedBox(height: 15),
-
               Center(
                 child: Container(
                   decoration: BoxDecoration(
@@ -113,11 +121,10 @@ class _PlaysongState extends State<Playsong> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 10),
-
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: Row(
                   children: [
                     Column(
@@ -133,7 +140,8 @@ class _PlaysongState extends State<Playsong> {
                         SizedBox(height: 4),
                         Text(
                           'TREASURE',
-                          style: TextStyle(fontStyle: FontStyle.italic, fontSize: 15),
+                          style: TextStyle(
+                              fontStyle: FontStyle.italic, fontSize: 15),
                         ),
                       ],
                     ),
@@ -143,7 +151,9 @@ class _PlaysongState extends State<Playsong> {
                         setState(() => isFavorite = !isFavorite);
                       },
                       icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border_outlined,
+                        isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border_outlined,
                         color: isFavorite ? Colors.red : Colors.black,
                         size: 28,
                       ),
@@ -151,7 +161,6 @@ class _PlaysongState extends State<Playsong> {
                   ],
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25),
                 child: SliderTheme(
@@ -171,7 +180,6 @@ class _PlaysongState extends State<Playsong> {
                   ),
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25),
                 child: Row(
@@ -182,40 +190,44 @@ class _PlaysongState extends State<Playsong> {
                   ],
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.only(top: 10, left: 30, right: 30),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.replay, size: 30)),
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.skip_previous, size: 30)),
-
+                    IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.replay, size: 30)),
+                    IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.skip_previous, size: 30)),
                     IconButton(
                       iconSize: 50,
-                      icon: Icon(isPlaying
-                          ? Icons.stop_circle_outlined
-                          : Icons.play_circle_fill_outlined),
-                      onPressed: () {
+                      icon: Icon(
+                        isPlaying ? Icons.pause_circle : Icons.play_circle_fill,
+                      ),
+                      onPressed: () async {
+                        if (isPlaying) {
+                          await player.pause();
+                        } else {
+                          await player.play(AssetSource('lagu.mp3'));
+                        }
+
                         setState(() {
-                          if (isPlaying) {
-                            stopSimulation();
-                          } else {
-                            isPlaying = true;
-                            playSimulation();
-                          }
+                          isPlaying = !isPlaying;
                         });
                       },
                     ),
-
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.skip_next, size: 30)),
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.queue_music, size: 30)),
+                    IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.skip_next, size: 30)),
+                    IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.queue_music, size: 30)),
                   ],
                 ),
               ),
-
               const SizedBox(height: 15),
-
               Center(
                 child: Container(
                   width: 300,
@@ -224,7 +236,8 @@ class _PlaysongState extends State<Playsong> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFFEE0),
                     borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: const Color.fromARGB(255, 0, 0, 0), width: 3),
+                    border: Border.all(
+                        color: const Color.fromARGB(255, 0, 0, 0), width: 3),
                   ),
                   child: const Scrollbar(
                     thumbVisibility: true,
@@ -290,13 +303,13 @@ It's obvious to see
 He ain't better than me
 That's why you gotta believe
 He ain't better than me""",
-                        style: TextStyle(fontWeight: FontWeight.w500, height: 1.4),
+                        style:
+                            TextStyle(fontWeight: FontWeight.w500, height: 1.4),
                       ),
                     ),
                   ),
                 ),
               ),
-
               const SizedBox(height: 25),
             ],
           ),
@@ -319,16 +332,19 @@ He ain't better than me""",
                 duration: const Duration(milliseconds: 250),
                 padding: EdgeInsets.all(selectedIndex == 0 ? 8 : 2),
                 decoration: BoxDecoration(
-                  color: selectedIndex == 0 ? const Color.fromARGB(31, 194, 27, 27) : const Color.fromARGB(0, 199, 29, 29),
+                  color: selectedIndex == 0
+                      ? const Color.fromARGB(31, 194, 27, 27)
+                      : const Color.fromARGB(0, 199, 29, 29),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: IconButton(
                   onPressed: () {
                     setState(() => selectedIndex = 0);
-                    Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => AlbumPage()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => AlbumPage()));
                   },
-                  icon: const Icon(Icons.home_outlined, size: 20, color: Colors.black),
+                  icon: const Icon(Icons.home_outlined,
+                      size: 20, color: Colors.black),
                 ),
               ),
 
@@ -337,16 +353,18 @@ He ain't better than me""",
                 duration: const Duration(milliseconds: 250),
                 padding: EdgeInsets.all(selectedIndex == 1 ? 8 : 2),
                 decoration: BoxDecoration(
-                  color: selectedIndex == 1 ? Colors.black12 : Colors.transparent,
+                  color:
+                      selectedIndex == 1 ? Colors.black12 : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: IconButton(
                   onPressed: () {
                     setState(() => selectedIndex = 1);
-                    Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => TopArtPage()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => TopArtPage()));
                   },
-                  icon: const Icon(Icons.group_add_outlined, size: 20, color: Colors.black),
+                  icon: const Icon(Icons.group_add_outlined,
+                      size: 20, color: Colors.black),
                 ),
               ),
 
@@ -364,7 +382,7 @@ He ain't better than me""",
                   onPressed: () {
                     setState(() => selectedIndex = 2);
                     Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => Playsong()));
+                        context, MaterialPageRoute(builder: (_) => Playsong()));
                   },
                   icon: const Icon(Icons.music_note_outlined,
                       size: 20, color: Colors.black),
@@ -376,14 +394,15 @@ He ain't better than me""",
                 duration: const Duration(milliseconds: 250),
                 padding: EdgeInsets.all(selectedIndex == 3 ? 8 : 2),
                 decoration: BoxDecoration(
-                  color: selectedIndex == 3 ? Colors.black12 : Colors.transparent,
+                  color:
+                      selectedIndex == 3 ? Colors.black12 : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: IconButton(
                   onPressed: () {
                     setState(() => selectedIndex = 3);
-                    Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => ProfilePage()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => ProfilePage()));
                   },
                   icon: const Icon(Icons.account_circle_outlined,
                       size: 20, color: Colors.black),

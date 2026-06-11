@@ -38,21 +38,21 @@ class _AlbumPageState extends State<AlbumPage> {
           children: [
             const SizedBox(height: 10),
 
-            // SEARCH BAR
+            
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
                 height: 45,
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 250, 250),
+                  color: const Color.fromARGB(255, 255, 255, 255),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Row(
-                  children: [
-                    const Icon(Icons.search, color: Colors.black54),
-                    const SizedBox(width: 10),
-                    const Expanded(
+                  children: const [
+                    Icon(Icons.search, color: Colors.black54),
+                    SizedBox(width: 10),
+                    Expanded(
                       child: TextField(
                         decoration: InputDecoration(
                           hintText: "Search...",
@@ -67,7 +67,6 @@ class _AlbumPageState extends State<AlbumPage> {
 
             const SizedBox(height: 20),
 
-            // LIST ALBUM
             Column(
               children: [
                 albumItem("NIKI", 'assets/Nicole_(Album)_cover.png'),
@@ -96,22 +95,15 @@ class _AlbumPageState extends State<AlbumPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // HOME
             navItem(Icons.home_outlined, 0, () {}),
-
-            // GROUP
             navItem(Icons.group_add_outlined, 1, () {
               Navigator.push(
                   context, MaterialPageRoute(builder: (_) => TopArtPage()));
             }),
-
-            // MUSIC
             navItem(Icons.music_note_outlined, 2, () {
               Navigator.push(
                   context, MaterialPageRoute(builder: (_) => const Playsong()));
             }),
-
-            // PROFILE
             navItem(Icons.account_circle_outlined, 3, () {
               Navigator.push(
                   context, MaterialPageRoute(builder: (_) => ProfilePage()));
@@ -122,7 +114,7 @@ class _AlbumPageState extends State<AlbumPage> {
     );
   }
 
-  // NAV ITEM (biar rapi)
+  // NAV ITEM
   Widget navItem(IconData icon, int index, VoidCallback onTap) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
@@ -143,84 +135,113 @@ class _AlbumPageState extends State<AlbumPage> {
     );
   }
 
-  // ⭐ DESIGN BARU ALBUM
+ 
   Widget albumItem(String title, String imagePath) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const ProfileArtist(),
-          ),
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0.95, end: 1),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      builder: (context, double scale, child) {
+        return Transform.scale(
+          scale: scale,
+          child: child,
         );
       },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              transitionDuration: const Duration(milliseconds: 400),
+              pageBuilder: (_, __, ___) => const ProfileArtist(),
+              transitionsBuilder: (_, animation, __, child) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // IMAGE
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                imagePath,
-                width: 65,
-                height: 65,
-                fit: BoxFit.cover,
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.95),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.black12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
-            ),
-
-            const SizedBox(width: 15),
-
-            // TEXT
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+            ],
+          ),
+          child: Row(
+            children: [
+              // IMAGE
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 8,
                     ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    imagePath,
+                    width: 65,
+                    height: 65,
+                    fit: BoxFit.cover,
                   ),
-                  const SizedBox(height: 5),
-                  const Text(
-                    "Popular Album",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
 
-            // PLAY BUTTON
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
+              const SizedBox(width: 15),
+
+              // TEXT
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      "Top Hits • 2026",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Icon(
-                Icons.play_arrow,
-                color: Colors.white,
-                size: 18,
+
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.play_arrow,
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
